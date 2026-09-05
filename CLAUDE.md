@@ -3,8 +3,8 @@
 The read and write layer for ICC-Pipes. That is the whole project.
 
 ICC-Pipes is the cable. It creates, lists, and removes pipes and says what
-a lane is. This project slices what you want to send into frames, puts
-them on the lanes, takes them off the other end, and pieces them back
+a lane is. This project slices something big into frames, stuffs them
+down the lanes, takes them off the other end, and pieces them back
 together in order. Nothing more.
 
 ## Where this sits
@@ -37,11 +37,15 @@ one number written in front of it, its byte count, because a held pipe
 never says EOF. That count is the only thing Frames puts on the wire
 that the caller did not.
 
-The normal pipe is 2 lanes and the normal payload is a sentence, the
-same "I'm done" one fork sends another. There the rule collapses to a
-count and a stream, and nothing is ever spliced. A wide pipe or a big
-payload runs the same script with a longer loop. Do not build for the
-wide case; make sure the narrow case never has to know it exists.
+Pipes alone ties processes together fine when what goes through is a
+sentence. Frames is for the other case: something big pushed down a
+bundle of narrow lanes and coming out whole at the far end. One lane
+holds 64K in flight. In Claude Code a write must finish inside one tool
+call, with nobody guaranteed to be reading yet, so what a write can
+leave on the wire and walk away from is the lane count times 64K. That
+is why the bundle exists, and Frames is the stick. Build for the
+bundle. Two lanes is a bundle of one straw each way, and the same
+script.
 
 Both operations take a pipe directory that ICC-Pipes handed out. Both
 open lanes with `<>`. That open never blocks, with or without anyone on
@@ -83,8 +87,8 @@ Pipes, not a paragraph here.
 ## Testing
 
 A test harness is allowed **only to prove read and write work**: get a
-pipe from Pipes, write a payload bigger than one frame, read it back,
-compare bytes, both directions, remove the pipe. The harness must not
+pipe from Pipes, write a payload bigger than one lane holds, read it
+back whole, compare bytes, both directions, remove the pipe. The harness must not
 grow into a client, protocol, or example app. If a test needs more than
 a few lines of setup, read or write is too complicated, not the test.
 
