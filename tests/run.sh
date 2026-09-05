@@ -1,6 +1,11 @@
 #!/bin/sh
+# tests/run.sh
 # Prove read and write: get a pipe, push a payload bigger than one lane holds
 # through it, read it back whole, compare bytes, both directions, remove it.
+# Copyright (c) 2026 Brian Case. All rights reserved.
+# AI contributor: Claude (Anthropic)
+#
+# MIT License text omitted for brevity, see LICENSE
 set -eu
 cd "$(dirname "$0")/.."
 P=${ICC_PIPES:-../ICC-Pipes}/.claude/skills/icc-pipes/scripts
