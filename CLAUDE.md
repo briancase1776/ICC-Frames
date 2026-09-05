@@ -29,11 +29,19 @@ Order holds across every lane, not just within one. That is the whole
 point of the layer. Pipes only promises order within a lane; Frames
 promises it for the payload.
 
-A **frame** is the unit. It is one write to one lane, at most PIPE_BUF
-so it lands whole. Its header carries what read needs to put the payload
-back in order and nothing else: where this piece goes, and where it
-ends. If a field is not needed to slice or reassemble, it does not
-exist. The frame is the only thing this project defines.
+A **frame** is one write to one lane of at most PIPE_BUF bytes, so it
+lands whole. Frames carry no header. Where a frame goes comes from a
+rule both sides already share: frames go round-robin over the lanes in
+lane order, starting at the first. Where the payload ends comes from
+one number written in front of it, its byte count, because a held pipe
+never says EOF. That count is the only thing Frames puts on the wire
+that the caller did not.
+
+The normal pipe is 2 lanes and the normal payload is a sentence, the
+same "I'm done" one fork sends another. There the rule collapses to a
+count and a stream, and nothing is ever spliced. A wide pipe or a big
+payload runs the same script with a longer loop. Do not build for the
+wide case; make sure the narrow case never has to know it exists.
 
 Both operations take a pipe directory that ICC-Pipes handed out. Both
 open lanes with `<>`. That open never blocks, with or without anyone on
@@ -92,8 +100,8 @@ a few lines of setup, read or write is too complicated, not the test.
 - **No abstraction until there are two real callers.**
 - **Two operations.** read and write. Not a third. If something looks
   like it needs a third, it belongs above or below this layer.
-- **One frame.** The header carries what reassembly needs and nothing
-  else. It never grows to say what the payload is.
+- **One number.** The only bytes Frames adds are a payload's count, in
+  front. No header ever grows on a frame to say what the payload is.
 
 ## Layout
 
