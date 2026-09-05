@@ -20,10 +20,11 @@ the bytes are. Each layer touches only the one below it.
 - **write**: given a lane and bytes, the bytes go on the lane.
 - **read**: given a lane, bytes come off it, and the call returns.
 
-Both take a lane path that ICC-Pipes handed out. Both deal only with the
-facts Pipes states about a FIFO: writes past PIPE_BUF can interleave, an
-empty lane blocks, and a read never sees EOF while the pipe is up. Read
-and write exist to face those facts so the caller does not have to.
+Both take a lane path that ICC-Pipes handed out. Both open it with `<>`.
+That open never blocks, with or without anyone on the other end, and a
+write through it of at most PIPE_BUF returns with nobody reading. The one
+thing that waits is a read on an empty lane, so read is bounded. Nothing
+in this project blocks on open.
 
 ## What this is not
 
